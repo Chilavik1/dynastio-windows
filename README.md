@@ -6,6 +6,9 @@
 2. Запустите установщик. При установке обязательно убедитесь, что включена галочка **«Use WSL 2 instead of Hyper-V (recommended)»**.
 3. Перезагрузите компьютер по требованию установщика.
 4. Запустите Docker Desktop с рабочего стола и дождитесь, пока индикатор в левом нижнем углу окна программы станет зеленым (`Engine Running`).
+5. Перейдите в настройки, выберите разред Resources -> WSL integration, поставьте галочку на Enable integration with my default WSL distro и переключите тумблер Debian на включённое состояние
+<img width="899" height="400" alt="настройки" src="https://github.com/user-attachments/assets/6197c629-7b2b-49fd-814d-f312a9ae3d57" />
+
 
 #### 2. Подготовка и обновление WSL 2
 Чтобы Docker Desktop работал стабильно и без сбоев, необходимо обновить ядро подсистемы Linux (WSL) в Windows до самой актуальной версии. Для этого откройте **PowerShell от имени администратора** и выполните команду:
@@ -87,10 +90,10 @@ docker pull n0uk/dynast.io-server-private:release
 > ⚠️ **ВАЖНО**
 > Чтобы контейнер каждый раз не грузил карту по новой (что занимает от 10 до 20 минут), мы перенесём её в нашу ОС вручную
 > Откройте терминал WSL2 командой `wsl -d Debian` в powershell
-> Выполните следующие команды
+> Выполните следующие команды:
 > ```bash
-mkdir -p ~/dynast/maps
-cp -r /mnt/c/Users/chlvk/Desktop/NoahNode2/files/maps/* ~/dynast/maps/```
+> mkdir -p ~/dynast/maps
+> cp -r /mnt/c/Users/chlvk/Desktop/NoahNode2/files/maps/* ~/dynast/maps/```
 
 ### Команда запуска сервера 
 ```bash
