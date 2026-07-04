@@ -97,7 +97,7 @@ docker pull n0uk/dynast.io-server-private:release
 
 ### Команда запуска сервера 
 ```bash
-docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=standard -e DYNASTIO_LABEL="BymiNoob" -e DYNASTIO_UID=google:112901020510349532837 -e DYNASTIO_PIN_CODE=632-679-288 -p 800:800 -v C:\Users\chlvk\Desktop\files\settings:/usr/local/bin/settings -v C:\Users\chlvk\Desktop\files\data.sqlite:/usr/local/bin/data.sqlite -v C:\Users\chlvk\Desktop\files\logs:/var/log -v \\wsl$\Debian\home\root1\dynast\maps:/usr/local/bin/maps -d n0uk/dynast.io-server-private:release
+docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=standard -e DYNASTIO_LABEL="BymiNoob" -e DYNASTIO_UID=google:11111111 -e DYNASTIO_PIN_CODE=676-767-676 -p 800:800 -v C:\Users\chlvk\Desktop\files\settings:/usr/local/bin/settings -v C:\Users\chlvk\Desktop\files\data.sqlite:/usr/local/bin/data.sqlite -v C:\Users\chlvk\Desktop\files\logs:/var/log -v \\wsl$\Debian\home\root1\dynast\maps:/usr/local/bin/maps -d n0uk/dynast.io-server-private:release
 ```  
 
 #### Описание команды: 
