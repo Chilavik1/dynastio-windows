@@ -93,7 +93,7 @@ docker pull n0uk/dynast.io-server-private:release
 > Выполните следующие команды:
 > ```bash
 > mkdir -p ~/dynast/maps
-> cp -r /mnt/c/Users/chlvk/Desktop/NoahNode2/files/maps/* ~/dynast/maps/```
+> cp -r /mnt/c/Users/chlvk/Desktop/NoahNode2/files/maps/* ~/dynast/maps/
 
 ### Команда запуска сервера 
 ```bash
