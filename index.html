@@ -98,7 +98,7 @@
             border-color: #a855f7;
             color: #fff;
         }
-        #folderInput {
+        #fileInput {
             display: none;
         }
         .submit-btn { 
@@ -170,8 +170,8 @@
                 <label for="basePath">Путь к рабочей папке сервера:</label>
                 <div class="input-with-btn">
                     <input type="text" id="basePath" value="C:\dyn_private">
-                    <label class="browse-btn" for="folderInput">Выбрать папку</label>
-                    <input type="file" id="folderInput" webkitdirectory="" directory="" multiple="">
+                    <label class="browse-btn" for="fileInput">Указать папку</label>
+                    <input type="file" id="fileInput">
                 </div>
             </div>
 
@@ -215,12 +215,18 @@
     </div>
 
     <script>
-        document.getElementById('folderInput').addEventListener('change', function(e) {
+        document.getElementById('fileInput').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
-                var relativePath = e.target.files[0].webkitRelativePath;
-                var folderName = relativePath.split('/')[0];
-                if (folderName) {
-                    document.getElementById('basePath').value = "C:\\" + folderName;
+                var file = e.target.files[0];
+                if (file && file.name) {
+                    var fullPath = "C:\\dyn_private";
+                    if (file.webkitRelativePath) {
+                        var parts = file.webkitRelativePath.split('/');
+                        if (parts.length > 1) {
+                            fullPath = "C:\\" + parts[0];
+                        }
+                    }
+                    document.getElementById('basePath').value = fullPath;
                     generateCommand();
                 }
             }
@@ -264,8 +270,3 @@
             for (var i = 0; i < inputs.length; i++) {
                 inputs[i].addEventListener('input', generateCommand);
             }
-        };
-    </script>
-
-</body>
-</html>
