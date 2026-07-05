@@ -92,6 +92,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            min-width: 120px;
         }
         .browse-btn:hover {
             background: rgba(147, 51, 234, 0.3);
@@ -146,9 +147,22 @@
             line-height: 1.5;
             display: block;
         }
+        .info-box {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .info-box strong {
+            color: #c084fc;
+        }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width { grid-column: span 1; }
+            .browse-btn { min-width: 90px; font-size: 12px; }
         }
     </style>
 </head>
@@ -162,16 +176,16 @@
             <div class="form-group full-width">
                 <label for="basePath">Путь к рабочей папке сервера:</label>
                 <div class="input-with-btn">
-                    <input type="text" id="basePath" value="C:\dyn_private">
-                    <button class="browse-btn" onclick="selectFolder('basePath', 'C:\\dyn_private')">Выбрать папку</button>
+                    <input type="text" id="basePath" value="C:\dyn_private" placeholder="Введите путь вручную">
+                    <button class="browse-btn" onclick="showPathGuide('basePath', 'Рабочая папка сервера (Windows)')">Как указать путь</button>
                 </div>
             </div>
 
             <div class="form-group full-width">
                 <label for="wslPath">Путь к папке карт WSL:</label>
                 <div class="input-with-btn">
-                    <input type="text" id="wslPath" value="\\wsl.localhost\Ubuntu\home\chlvk\dynast\maps">
-                    <button class="browse-btn" onclick="selectFolder('wslPath', '\\\\wsl.localhost\\Ubuntu\\home\\user\\maps')">Выбрать папку</button>
+                    <input type="text" id="wslPath" value="\\wsl.localhost\Ubuntu\home\chlvk\dynast\maps" placeholder="Введите путь вручную">
+                    <button class="browse-btn" onclick="showPathGuide('wslPath', 'Папка карт в WSL')">Как указать путь</button>
                 </div>
             </div>
 
@@ -207,38 +221,42 @@
             <span class="result-title">Ready Output</span>
             <code id="output">Генерация строки...</code>
         </div>
+        
+        <div class="info-box">
+            <strong>💡 Как указать пути:</strong><br>
+            • Рабочая папка: укажите полный путь на диске C:, например <code>C:\dyn_private</code><br>
+            • Папка карт WSL: используйте формат <code>\\wsl.localhost\Ubuntu\home\user\maps</code>
+        </div>
     </div>
 
     <script>
-        function selectFolder(targetId, fallbackPath) {
-            var tempInput = document.createElement('input');
-            tempInput.type = 'file';
-            tempInput.setAttribute('webkitdirectory', '');
-            tempInput.setAttribute('directory', '');
+        function showPathGuide(targetId, pathType) {
+            var examples = {
+                'basePath': 'C:\\dyn_private',
+                'wslPath': '\\\\wsl.localhost\\Ubuntu\\home\\user\\maps'
+            };
             
-            tempInput.addEventListener('change', function(e) {
-                if (e.target.files.length > 0) {
-                    var relativePath = e.target.files[0].webkitRelativePath;
-                    var folderName = relativePath.split('/')[0];
-                    if (targetId === 'wslPath') {
-                        document.getElementById(targetId).value = "\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\" + folderName;
-                    } else {
-                        document.getElementById(targetId).value = "C:\\" + folderName;
-                    }
-                    generateCommand(false);
-                }
-            });
-            tempInput.click();
+            var message = '📁 ' + pathType + '\n\n' +
+                         'Введите путь вручную в поле ввода.\n\n' +
+                         'Пример для Windows:\n' + examples[targetId] + '\n\n' +
+                         'Вы можете скопировать путь из проводника Windows и вставить в поле.';
+            
+            alert(message);
         }
 
         function generateCommand(isClick) {
-            var basePath = document.getElementById('basePath').value.replace(/\/$/, ""); 
-            var wslPath = document.getElementById('wslPath').value.replace(/\/$/, "");
-            var label = document.getElementById('label').value;
-            var port = document.getElementById('port').value;
-            var map = document.getElementById('map').value;
-            var uid = document.getElementById('uid').value;
-            var pin = document.getElementById('pin').value;
+            var basePath = document.getElementById('basePath').value.trim().replace(/\/$/, ""); 
+            var wslPath = document.getElementById('wslPath').value.trim().replace(/\/$/, "");
+            var label = document.getElementById('label').value.trim();
+            var port = document.getElementById('port').value.trim();
+            var map = document.getElementById('map').value.trim();
+            var uid = document.getElementById('uid').value.trim();
+            var pin = document.getElementById('pin').value.trim();
+
+            if (!basePath || !wslPath || !label || !port || !map || !uid || !pin) {
+                document.getElementById('output').innerText = '❌ Ошибка: заполните все поля!';
+                return;
+            }
 
             var command = "docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=" + map + " -e DYNASTIO_LABEL=\"" + label + "\" -e DYNASTIO_UID=" + uid + " -e DYNASTIO_PIN_CODE=" + pin + " -p " + port + ":" + port + " -v " + basePath + "\\settings:/usr/local/bin/settings -v " + basePath + "\\data.sqlite:/usr/local/bin/data.sqlite -v " + basePath + "\\logs:/var/log -v " + wslPath + ":/usr/local/bin/maps -d n0uk/dynast.io-server-private:release";
 
@@ -248,7 +266,7 @@
                 navigator.clipboard.writeText(command).then(function() {
                     var btn = document.querySelector('.submit-btn');
                     var oldText = btn.innerText;
-                    btn.innerText = "Успешно скопировано!";
+                    btn.innerText = "✅ Успешно скопировано!";
                     btn.style.background = "linear-gradient(135deg, #22c55e 0%, #10b981 100%)";
                     btn.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.4)";
                     setTimeout(function() {
@@ -257,5 +275,32 @@
                         btn.style.boxShadow = "";
                     }, 2000);
                 }).catch(function() {
-                    alert("Не удалось скопировать автоматически.");
-});}}window.onload = function() {generateCommand(false);var inputs = document.querySelectorAll('input');for (var i = 0; i < inputs.length; i++) {inputs[i].addEventListener('input', function() { generateCommand(false); });}};
+                    // Fallback для старых браузеров
+                    var textArea = document.createElement('textarea');
+                    textArea.value = command;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        alert('Команда скопирована в буфер обмена!');
+                    } catch (err) {
+                        alert('Не удалось скопировать автоматически. Скопируйте команду вручную.');
+                    }
+                    document.body.removeChild(textArea);
+                });
+            }
+        }
+
+        // Автогенерация при изменении полей
+        window.onload = function() {
+            generateCommand(false);
+            var inputs = document.querySelectorAll('input');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].addEventListener('input', function() { 
+                    generateCommand(false); 
+                });
+            }
+        };
+    </script>
+</body>
+</html>
