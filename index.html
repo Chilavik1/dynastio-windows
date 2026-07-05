@@ -51,10 +51,6 @@
             font-weight: 400; 
             color: #f0f6fc;
         }
-        .input-with-btn {
-            display: flex;
-            gap: 8px;
-        }
         input { 
             width: 100%; 
             padding: 5px 12px; 
@@ -70,26 +66,15 @@
             border-color: #58a6ff; 
             box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.3);
         }
-        .browse-btn {
-            background-color: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            padding: 0 12px;
-            border-radius: 6px;
+        .quick-hint {
+            font-size: 12px;
+            color: #58a6ff;
+            margin-top: 4px;
             cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
+            display: inline-block;
         }
-        .browse-btn:hover {
-            background-color: #30363d;
-            border-color: #8b949e;
-        }
-        #fileInput {
-            display: none;
+        .quick-hint:hover {
+            text-decoration: underline;
         }
         .submit-btn { 
             background-color: #238636;
@@ -144,11 +129,8 @@
         <div class="form-grid">
             <div class="form-group full-width">
                 <label for="basePath">Путь к рабочей папке сервера:</label>
-                <div class="input-with-btn">
-                    <input type="text" id="basePath" value="C:\dyn_private">
-                    <label class="browse-btn" for="fileInput">Указать папку</label>
-                    <input type="file" id="fileInput">
-                </div>
+                <input type="text" id="basePath" value="C:\dyn_private">
+                <span class="quick-hint" onclick="setDefPath()">⚡ Сбросить на стандартный путь (C:\dyn_private)</span>
             </div>
 
             <div class="form-group full-width">
@@ -191,20 +173,10 @@
     </div>
 
     <script>
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                var file = e.target.files[0];
-                if (file && file.name) {
-                    var fullPath = "C:\\dyn_private";
-                    if (file.webkitRelativePath) {
-                        var parts = file.webkitRelativePath.split('/');
-                        if (parts.length > 1) { fullPath = "C:\\" + parts[0]; }
-                    }
-                    document.getElementById('basePath').value = fullPath;
-                    generateCommand(false);
-                }
-            }
-        });
+        function setDefPath() {
+            document.getElementById('basePath').value = "C:\\dyn_private";
+            generateCommand(false);
+        }
 
         function generateCommand(isClick) {
             var basePath = document.getElementById('basePath').value.replace(/\/$/, ""); 
