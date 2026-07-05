@@ -1,12 +1,20 @@
 ## 🐳 Шаг 1: Установка Docker Desktop
 ### 🪟 Инструкция по установке Docker Desktop на Windows
 
+#### 0. Установка wsl2
+1. Запустите powershell от имени администратора и введите
+```bash
+   wsl.exe --install
+```
+2. Введите имя пользователя вашей подсистемы Ubuntu, к примеру root либо оставьте имя пользователя вашей системы.
+3. Перезагрузите компьютер.
+
 #### 1. Скачивание и установка программы
 1. Скачайте официальный инсталлятор: [Docker Desktop для Windows](https://docker.com).
 2. Запустите установщик. При установке обязательно убедитесь, что включена галочка **«Use WSL 2 instead of Hyper-V (recommended)»**.
 3. Перезагрузите компьютер по требованию установщика.
 4. Запустите Docker Desktop с рабочего стола и дождитесь, пока индикатор в левом нижнем углу окна программы станет зеленым (`Engine Running`).
-5. Перейдите в настройки, выберите разред Resources -> WSL integration, поставьте галочку на Enable integration with my default WSL distro и переключите тумблер Debian на включённое состояние
+5. Перейдите в настройки, выберите разред Resources -> WSL integration, поставьте галочку на Enable integration with my default WSL distro и переключите тумблер Debian/Ubuntu на включённое состояние
 <img width="899" height="400" alt="настройки" src="https://github.com/user-attachments/assets/6197c629-7b2b-49fd-814d-f312a9ae3d57" />
 
 
@@ -52,7 +60,7 @@ docker pull n0uk/dynast.io-server-private:release
 5. Выберите тип ресурса: **HTTP**.
 6. Укажите порт локального сервера: **800** (или измените на свой порт, если настраивали другой).
 7. Нажмите на кнопку **«Опубликовать»**.
-8. Программа отобразит ваш готовый URL-адрес туннеля. Скопируйте его. Не закрывайте приложение во время игры!
+8. Программа отобразит ваш готовый URL-адрес туннеля. Скопируйте его. Держите приложение запущенным в панели задач.
 
 ##### Способ Б: Через Командную строку (Консоль CLI)
 1. Скачайте консольную версию утилиты для Windows и распакуйте архив в удобную папку (например, `C:\cloudpub\`).
@@ -89,23 +97,22 @@ docker pull n0uk/dynast.io-server-private:release
 
 > ⚠️ **ВАЖНО**
 > Чтобы контейнер каждый раз не грузил карту по новой (что занимает от 10 до 20 минут), мы перенесём её в нашу ОС вручную
-> Откройте терминал WSL2 командой `wsl -d Debian` в powershell
-> Выполните следующие команды:
-> ```bash
-> mkdir -p ~/dynast/maps
-> cp -r /mnt/c/Users/chlvk/Desktop/NoahNode2/files/maps/* ~/dynast/maps/
+> Перейдите в директорию \\wsl.localhost\Ubuntu\home\ и выберите имя пользователя, которое вы задали при установке wsl.exe --install, перенесите в эту папку свою папку maps
+> Это важно делать при каждом изменении карты
+
 
 ### Команда запуска сервера 
 ```bash
-docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=standard -e DYNASTIO_LABEL="BymiNoob" -e DYNASTIO_UID=google:11111111 -e DYNASTIO_PIN_CODE=676-767-676 -p 800:800 -v C:\Users\chlvk\Desktop\files\settings:/usr/local/bin/settings -v C:\Users\chlvk\Desktop\files\data.sqlite:/usr/local/bin/data.sqlite -v C:\Users\chlvk\Desktop\files\logs:/var/log -v \\wsl$\Debian\home\root1\dynast\maps:/usr/local/bin/maps -d n0uk/dynast.io-server-private:release
+docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=standard -e DYNASTIO_LABEL="BymiNoob" -e DYNASTIO_UID=google:11111111 -e DYNASTIO_PIN_CODE=676-767-676 -p 800:800 -v C:\dyn_private\settings:/usr/local/bin/settings -v C:\dyn_private\data.sqlite:/usr/local/bin/data.sqlite -v C:\dyn_private\logs:/var/log ^
+-v \\wsl$\Debian\home\user\maps:/usr/local/bin/maps -d n0uk/dynast.io-server-private:release
 ```  
 
 #### Описание команды: 
 * `-e DYNASTIO_MAP` — название карты
 * `-e DYNASTIO_LABEL="BymiNoob"` — название вашего сервера
 * `-p 800:800` — открытие портов сервера (поменяйте если используете другие)
-* `-v /root/dyn_private/data.sqlite:/usr/local/bin/` — путь к дб, настройкам и логам, поменяйте первую часть настройки на путь к вашим файлам вплоть до `C:\Users\chlvk\Desktop\files\` (к примеру, если файлы привата находятся в папке dyn_private на диске C, путь будет C:/dyn_private)
-* `-v \\wsl$\Debian\home\root1\dynast\maps:/usr/local/bin/maps` - полный путь к картам
+* `-v C:\dyn_private\data.sqlite:/usr/local/bin/` — путь к дб, настройкам и логам, поменяйте первую часть настройки на путь к вашим файлам вплоть до `C:\Users\chlvk\Desktop\files\` (к примеру, если файлы привата находятся в папке dyn_private на диске C, путь будет C:/dyn_private)
+* `-v \\wsl$\Debian\home\user\maps:/usr/local/bin/maps` - полный путь к картам
 * `--name dynast` — название docker контейнера
 
 ---
