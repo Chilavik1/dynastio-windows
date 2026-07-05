@@ -5,24 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор команды Dynast.io</title>
     <style>
-        * { box-sizing: border-box; transition: all 0.2s ease; }
+        * { 
+            box-sizing: border-box; 
+            transition: all 0.2s ease; 
+        }
+        
         body { 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             background: radial-gradient(circle at center, #1b162c 0%, #0d0a16 100%); 
             color: #e2e8f0; 
             padding: 40px 20px; 
-            max-width: 680px; 
+            max-width: 720px; 
             margin: 0 auto;
             min-height: 100vh;
         }
+        
         .container {
             background: rgba(25, 20, 41, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(147, 51, 234, 0.2);
             border-radius: 16px;
-            padding: 30px;
+            padding: 35px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.05);
         }
+        
         h2 { 
             margin-top: 0;
             font-size: 28px;
@@ -34,23 +40,28 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
+        
         .subtitle {
             text-align: center;
             color: #94a3b8;
             font-size: 14px;
             margin-bottom: 30px;
         }
+        
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
+        
         .form-group { 
             margin-bottom: 5px; 
         }
+        
         .form-group.full-width {
             grid-column: span 2;
         }
+        
         label { 
             display: block; 
             margin-bottom: 8px; 
@@ -60,11 +71,13 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .input-with-btn {
-            display: flex;
-            gap: 10px;
+        
+        .input-wrapper {
+            position: relative;
         }
-        input { 
+        
+        input[type="text"],
+        input[type="number"] { 
             width: 100%; 
             padding: 12px 16px; 
             background: rgba(13, 10, 22, 0.8); 
@@ -73,33 +86,58 @@
             border-radius: 8px; 
             font-size: 14px;
             outline: none;
+            font-family: 'Consolas', 'Courier New', monospace;
         }
+        
         input:focus { 
             border-color: #a855f7; 
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
             background: rgba(13, 10, 22, 0.9);
         }
-        .browse-btn {
-            background: rgba(147, 51, 234, 0.15);
-            border: 1px solid rgba(147, 51, 234, 0.4);
-            color: #c084fc;
-            padding: 0 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            white-space: nowrap;
+        
+        .input-hint {
             display: flex;
             align-items: center;
-            justify-content: center;
-            min-width: 120px;
-            gap: 6px;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #64748b;
+            padding: 4px 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
         }
-        .browse-btn:hover {
+        
+        .input-hint .icon {
+            font-size: 14px;
+        }
+        
+        .input-hint .example {
+            color: #38bdf8;
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        
+        .input-hint .copy-btn {
+            margin-left: auto;
+            background: rgba(147, 51, 234, 0.15);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            color: #c084fc;
+            padding: 2px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .input-hint .copy-btn:hover {
             background: rgba(147, 51, 234, 0.3);
             border-color: #a855f7;
             color: #fff;
         }
+        
         .submit-btn { 
             background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); 
             color: white; 
@@ -115,13 +153,16 @@
             letter-spacing: 1px;
             box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
         }
+        
         .submit-btn:hover { 
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(217, 70, 239, 0.5);
         }
+        
         .submit-btn:active {
             transform: translateY(0);
         }
+        
         .result-box { 
             margin-top: 30px; 
             background: #07050b; 
@@ -130,289 +171,313 @@
             border: 1px dashed rgba(236, 72, 153, 0.4); 
             position: relative;
         }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
         .result-title {
             font-size: 12px;
             font-weight: 700;
             color: #ec4899;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 10px;
-            display: block;
         }
+        
+        .result-copy-btn {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+            padding: 4px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .result-copy-btn:hover {
+            background: rgba(56, 189, 248, 0.3);
+            border-color: #38bdf8;
+        }
+        
         code { 
             word-break: break-all; 
             white-space: pre-wrap; 
             font-family: 'Consolas', 'Courier New', monospace; 
             color: #38bdf8; 
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.6;
             display: block;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
         }
+        
         .info-box {
             background: rgba(168, 85, 247, 0.1);
             border: 1px solid rgba(168, 85, 247, 0.2);
             border-radius: 8px;
-            padding: 12px;
-            margin-top: 15px;
+            padding: 16px;
+            margin-top: 20px;
             font-size: 13px;
             color: #94a3b8;
         }
+        
         .info-box strong {
             color: #c084fc;
         }
-        .path-hint {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 4px;
+        
+        .info-box .tips {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
         }
+        
+        .info-box .tip {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .info-box .tip code {
+            color: #fbbf24;
+            font-size: 12px;
+            background: none;
+            padding: 0;
+            display: inline;
+        }
+        
         @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .form-group.full-width { grid-column: span 1; }
-            .browse-btn { min-width: 90px; font-size: 12px; }
+            .form-grid { 
+                grid-template-columns: 1fr; 
+            }
+            .form-group.full-width { 
+                grid-column: span 1; 
+            }
+            .info-box .tips {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Luminous Generator</h2>
+        <h2>🚀 Luminous Generator</h2>
         <div class="subtitle">Конфигуратор строки запуска приватного сервера Dynast.io</div>
 
         <div class="form-grid">
             <div class="form-group full-width">
-                <label for="basePath">Путь к рабочей папке сервера:</label>
-                <div class="input-with-btn">
-                    <input type="text" id="basePath" value="C:\dyn_private">
-                    <button class="browse-btn" onclick="selectFolder('basePath')">Выбрать папку</button>
+                <label for="basePath">📁 Рабочая папка сервера</label>
+                <div class="input-wrapper">
+                    <input type="text" id="basePath" value="C:\dyn_private" placeholder="Введите путь к папке сервера">
                 </div>
-                <div class="path-hint">Пример: C:\dyn_private</div>
+                <div class="input-hint">
+                    <span class="icon">💡</span>
+                    <span>Пример: </span>
+                    <span class="example">C:\dyn_private</span>
+                    <button class="copy-btn" onclick="copyExample('basePath', 'C:\\dyn_private')">Вставить пример</button>
+                </div>
             </div>
 
             <div class="form-group full-width">
-                <label for="wslPath">Путь к папке карт WSL:</label>
-                <div class="input-with-btn">
-                    <input type="text" id="wslPath" value="\\wsl.localhost\Ubuntu\home\chlvk\dynast\maps">
-                    <button class="browse-btn" onclick="selectFolder('wslPath')">Выбрать папку</button>
+                <label for="wslPath">🐧 Папка карт WSL</label>
+                <div class="input-wrapper">
+                    <input type="text" id="wslPath" value="\\wsl.localhost\Ubuntu\home\chlvk\dynast\maps" placeholder="Введите путь к папке карт в WSL">
                 </div>
-                <div class="path-hint">Пример: \\wsl.localhost\Ubuntu\home\user\maps</div>
+                <div class="input-hint">
+                    <span class="icon">💡</span>
+                    <span>Пример: </span>
+                    <span class="example">\\wsl.localhost\Ubuntu\home\user\maps</span>
+                    <button class="copy-btn" onclick="copyExample('wslPath', '\\\\wsl.localhost\\Ubuntu\\home\\user\\maps')">Вставить пример</button>
+                </div>
             </div>
 
             <div class="form-group">
-                <label for="label">Название сервера (Label):</label>
-                <input type="text" id="label" value="BymiNoob">
+                <label for="label">🏷️ Название сервера</label>
+                <input type="text" id="label" value="BymiNoob" placeholder="Название сервера">
             </div>
 
             <div class="form-group">
-                <label for="port">Сетевой порт:</label>
-                <input type="number" id="port" value="800">
+                <label for="port">🔌 Сетевой порт</label>
+                <input type="number" id="port" value="800" placeholder="800">
             </div>
 
             <div class="form-group">
-                <label for="map">Игровая карта:</label>
-                <input type="text" id="map" value="standard">
+                <label for="map">🗺️ Игровая карта</label>
+                <input type="text" id="map" value="standard" placeholder="standard">
             </div>
 
             <div class="form-group">
-                <label for="uid">Идентификатор (UID):</label>
-                <input type="text" id="uid" value="google:11111111">
+                <label for="uid">🆔 Айди пользователя (UID)</label>
+                <input type="text" id="uid" value="google:11111111" placeholder="google:11111111">
             </div>
 
             <div class="form-group full-width">
-                <label for="pin">Приватный Пин-код (Pin Code):</label>
-                <input type="text" id="pin" value="676-767-676">
+                <label for="pin">🔐 =Пин-код</label>
+                <input type="text" id="pin" value="676-767-676" placeholder="676-767-676">
             </div>
         </div>
 
-        <button class="submit-btn" onclick="generateCommand(true)">Скопировать команду</button>
+        <button class="submit-btn" onclick="generateCommand(true)">
+            📋 Скопировать команду
+        </button>
 
         <div class="result-box">
-            <span class="result-title">Ready Output</span>
+            <div class="result-header">
+                <span class="result-title">⚡ Готовая команда</span>
+                <button class="result-copy-btn" onclick="copyCommand()">📋 Копировать</button>
+            </div>
             <code id="output">Генерация строки...</code>
         </div>
         
         <div class="info-box">
-            <strong>Информация:</strong> Для выбора папки используйте кнопки "Выбрать папку". 
-            Функция работает в современных браузерах (Chrome, Edge, Opera).
-            <br><br>
-            <strong>Важно:</strong> Браузер может не дать полный путь к папке из-за ограничений безопасности.
-            В этом случае введите путь вручную или используйте drag&drop.
+            <strong>📖 Как получить пути:</strong>
+            <div class="tips">
+                <div class="tip">
+                    <strong>Windows путь:</strong><br>
+                    Откройте папку в проводнике → кликните на адресную строку → скопируйте путь<br>
+                    <code>Пример: C:\dyn_private</code>
+                </div>
+                <div class="tip">
+                    <strong>WSL путь:</strong><br>
+                    Откройте терминал WSL → выполните <code>pwd</code> → скопируйте путь<br>
+                    <code>Пример: \\wsl.localhost\Ubuntu\home\user\maps</code>
+                </div>
+                <div class="tip" style="grid-column: span 2;">
+                    <strong>💡 Быстрый способ:</strong><br>
+                    Перетащите папку из проводника в поле ввода — путь подставится автоматически!
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Функция для выбора папки с использованием File System Access API
-        function selectFolder(targetId) {
-            // Проверяем поддержку API
-            if (!window.showDirectoryPicker) {
-                alert('Ваш браузер не поддерживает выбор папок. Пожалуйста, введите путь вручную.');
-                return;
-            }
-
-            // Открываем диалог выбора папки
-            window.showDirectoryPicker()
-                .then(function(directoryHandle) {
-                    // Пытаемся получить полный путь различными способами
-                    var fullPath = '';
-                    var folderName = directoryHandle.name || 'selected_folder';
-                    
-                    // Способ 1: Пытаемся получить путь через getDirectoryHandle (работает в некоторых браузерах)
-                    try {
-                        if (directoryHandle.getDirectoryHandle) {
-                            // Пробуем получить корневой путь
-                            var root = directoryHandle;
-                            var pathParts = [];
-                            
-                            // Рекурсивно поднимаемся вверх до корня
-                            function getPath(handle, parts) {
-                                if (handle.name) {
-                                    parts.unshift(handle.name);
-                                }
-                                // Пытаемся получить родительскую папку
-                                if (handle.parent) {
-                                    getPath(handle.parent, parts);
-                                }
-                            }
-                            
-                            // Если есть путь в свойстве path
-                            if (directoryHandle.path) {
-                                fullPath = directoryHandle.path;
-                            }
-                        }
-                    } catch (e) {
-                        console.log('Не удалось получить полный путь:', e);
-                    }
-                    
-                    // Способ 2: Используем webkitRelativePath через input (альтернативный метод)
-                    if (!fullPath || fullPath === '') {
-                        // Создаем временный input для получения пути через файлы
-                        var tempInput = document.createElement('input');
-                        tempInput.type = 'file';
-                        tempInput.setAttribute('webkitdirectory', '');
-                        tempInput.setAttribute('directory', '');
-                        tempInput.style.display = 'none';
-                        document.body.appendChild(tempInput);
-                        
-                        // Создаем Promise для обработки выбора
-                        var pathPromise = new Promise(function(resolve) {
-                            tempInput.addEventListener('change', function(e) {
-                                if (e.target.files.length > 0) {
-                                    var firstFile = e.target.files[0];
-                                    var relativePath = firstFile.webkitRelativePath;
-                                    var folderPath = relativePath.split('/')[0];
-                                    resolve(folderPath);
-                                } else {
-                                    resolve(null);
-                                }
-                                document.body.removeChild(tempInput);
-                            });
-                        });
-                        
-                        // Симулируем клик для открытия диалога
-                        tempInput.click();
-                        
-                        // Ждем результат
-                        pathPromise.then(function(folderPath) {
-                            if (folderPath) {
-                                if (targetId === 'wslPath') {
-                                    document.getElementById(targetId).value = '\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\' + folderPath;
-                                } else {
-                                    document.getElementById(targetId).value = 'C:\\' + folderPath;
-                                }
-                                generateCommand(false);
-                            }
-                        });
-                        return;
-                    }
-                    
-                    // Если получили путь, обновляем поле
-                    if (fullPath && fullPath !== '') {
-                        document.getElementById(targetId).value = fullPath;
-                    } else {
-                        // Если не удалось получить полный путь, используем имя папки
-                        if (targetId === 'wslPath') {
-                            document.getElementById(targetId).value = '\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\' + folderName;
-                        } else {
-                            document.getElementById(targetId).value = 'C:\\' + folderName;
-                        }
-                    }
-                    
-                    // Обновляем команду
-                    generateCommand(false);
-                })
-                .catch(function(error) {
-                    if (error.name === 'AbortError' || error.code === 20) {
-                        // Пользователь отменил выбор - ничего не делаем
-                        console.log('Выбор папки отменен');
-                    } else {
-                        console.error('Ошибка при выборе папки:', error);
-                        alert('Произошла ошибка при выборе папки. Пожалуйста, введите путь вручную.');
-                    }
-                });
+        // Функция для вставки примера
+        function copyExample(targetId, example) {
+            document.getElementById(targetId).value = example;
+            generateCommand(false);
+            
+            // Визуальный эффект
+            var input = document.getElementById(targetId);
+            input.style.borderColor = '#22c55e';
+            input.style.boxShadow = '0 0 12px rgba(34, 197, 94, 0.3)';
+            setTimeout(function() {
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+            }, 1000);
         }
 
-        // Функция для получения полного пути через Native File System API (экспериментальный)
-        async function getFullPath(handle) {
-            try {
-                // Пытаемся получить доступ к файловой системе
-                if (window.showDirectoryPicker) {
-                    // Запрашиваем разрешение на чтение
-                    const opts = { mode: 'read' };
-                    const permission = await handle.requestPermission(opts);
-                    
-                    if (permission === 'granted') {
-                        // Пытаемся получить путь через getFile
-                        const entries = [];
-                        for await (const entry of handle.values()) {
-                            entries.push(entry);
-                        }
-                        
-                        // Если есть файлы, пытаемся получить путь к первому файлу
-                        if (entries.length > 0) {
-                            const fileHandle = await handle.getFileHandle(entries[0].name);
-                            const file = await fileHandle.getFile();
-                            if (file.webkitRelativePath) {
-                                return file.webkitRelativePath.split('/')[0];
+        // Функция для копирования команды
+        function copyCommand() {
+            var command = document.getElementById('output').innerText;
+            if (command && command !== 'Генерация строки...' && !command.startsWith('❌')) {
+                navigator.clipboard.writeText(command).then(function() {
+                    var btn = document.querySelector('.result-copy-btn');
+                    var oldText = btn.innerText;
+                    btn.innerText = '✅ Скопировано!';
+                    btn.style.background = 'rgba(34, 197, 94, 0.3)';
+                    btn.style.borderColor = '#22c55e';
+                    btn.style.color = '#4ade80';
+                    setTimeout(function() {
+                        btn.innerText = oldText;
+                        btn.style.background = '';
+                        btn.style.borderColor = '';
+                        btn.style.color = '';
+                    }, 2000);
+                }).catch(function() {
+                    // Fallback
+                    var textArea = document.createElement('textarea');
+                    textArea.value = command;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('✅ Команда скопирована в буфер обмена!');
+                });
+            } else {
+                alert('❌ Нет команды для копирования. Заполните все поля.');
+            }
+        }
+
+        // Drag and drop для полей ввода
+        document.querySelectorAll('input[type="text"]').forEach(function(input) {
+            input.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#a855f7';
+                this.style.boxShadow = '0 0 12px rgba(168, 85, 247, 0.4)';
+            });
+            
+            input.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+            });
+            
+            input.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+                
+                var items = e.dataTransfer.items;
+                if (items && items.length > 0) {
+                    var item = items[0];
+                    if (item.kind === 'file') {
+                        var entry = item.webkitGetAsEntry();
+                        if (entry && entry.isDirectory) {
+                            // Если это папка, получаем её имя
+                            var path = entry.fullPath || entry.name;
+                            if (this.id === 'wslPath') {
+                                this.value = '\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\' + entry.name;
+                            } else {
+                                this.value = 'C:\\' + entry.name;
                             }
+                            generateCommand(false);
+                            
+                            // Визуальный эффект
+                            this.style.borderColor = '#22c55e';
+                            this.style.boxShadow = '0 0 12px rgba(34, 197, 94, 0.3)';
+                            setTimeout(function() {
+                                this.style.borderColor = '';
+                                this.style.boxShadow = '';
+                            }.bind(this), 1000);
                         }
                     }
                 }
-            } catch (e) {
-                console.log('Не удалось получить полный путь:', e);
-            }
-            return null;
-        }
+            });
+        });
 
         function generateCommand(isClick) {
-            var basePath = document.getElementById('basePath').value.replace(/\/$/, ""); 
-            var wslPath = document.getElementById('wslPath').value.replace(/\/$/, "");
-            var label = document.getElementById('label').value;
-            var port = document.getElementById('port').value;
-            var map = document.getElementById('map').value;
-            var uid = document.getElementById('uid').value;
-            var pin = document.getElementById('pin').value;
+            var basePath = document.getElementById('basePath').value.trim().replace(/\/$/, ""); 
+            var wslPath = document.getElementById('wslPath').value.trim().replace(/\/$/, "");
+            var label = document.getElementById('label').value.trim();
+            var port = document.getElementById('port').value.trim();
+            var map = document.getElementById('map').value.trim();
+            var uid = document.getElementById('uid').value.trim();
+            var pin = document.getElementById('pin').value.trim();
+
+            // Проверка заполнения всех полей
+            if (!basePath || !wslPath || !label || !port || !map || !uid || !pin) {
+                document.getElementById('output').innerText = '❌ Пожалуйста, заполните все поля!';
+                return;
+            }
 
             var command = "docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=" + map + " -e DYNASTIO_LABEL=\"" + label + "\" -e DYNASTIO_UID=" + uid + " -e DYNASTIO_PIN_CODE=" + pin + " -p " + port + ":" + port + " -v " + basePath + "\\settings:/usr/local/bin/settings -v " + basePath + "\\data.sqlite:/usr/local/bin/data.sqlite -v " + basePath + "\\logs:/var/log -v " + wslPath + ":/usr/local/bin/maps -d n0uk/dynast.io-server-private:release";
 
             document.getElementById('output').innerText = command;
 
             if (isClick === true) {
-                navigator.clipboard.writeText(command).then(function() {
-                    var btn = document.querySelector('.submit-btn');
-                    var oldText = btn.innerText;
-                    btn.innerText = "Успешно скопировано!";
-                    btn.style.background = "linear-gradient(135deg, #22c55e 0%, #10b981 100%)";
-                    btn.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.4)";
-                    setTimeout(function() {
-                        btn.innerText = oldText;
-                        btn.style.background = "";
-                        btn.style.boxShadow = "";
-                    }, 2000);
-                }).catch(function() {
-                    alert("Не удалось скопировать автоматически.");
-                });
+                // Если нажата главная кнопка, копируем
+                copyCommand();
             }
         }
 
+        // Автогенерация при изменении полей
         window.onload = function() {
             generateCommand(false);
             var inputs = document.querySelectorAll('input');
