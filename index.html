@@ -160,6 +160,11 @@
         .info-box strong {
             color: #c084fc;
         }
+        .path-hint {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width { grid-column: span 1; }
@@ -180,6 +185,7 @@
                     <input type="text" id="basePath" value="C:\dyn_private">
                     <button class="browse-btn" onclick="selectFolder('basePath')">Выбрать папку</button>
                 </div>
+                <div class="path-hint">Пример: C:\dyn_private</div>
             </div>
 
             <div class="form-group full-width">
@@ -188,6 +194,7 @@
                     <input type="text" id="wslPath" value="\\wsl.localhost\Ubuntu\home\chlvk\dynast\maps">
                     <button class="browse-btn" onclick="selectFolder('wslPath')">Выбрать папку</button>
                 </div>
+                <div class="path-hint">Пример: \\wsl.localhost\Ubuntu\home\user\maps</div>
             </div>
 
             <div class="form-group">
@@ -226,6 +233,9 @@
         <div class="info-box">
             <strong>Информация:</strong> Для выбора папки используйте кнопки "Выбрать папку". 
             Функция работает в современных браузерах (Chrome, Edge, Opera).
+            <br><br>
+            <strong>Важно:</strong> Браузер может не дать полный путь к папке из-за ограничений безопасности.
+            В этом случае введите путь вручную или используйте drag&drop.
         </div>
     </div>
 
@@ -241,21 +251,90 @@
             // Открываем диалог выбора папки
             window.showDirectoryPicker()
                 .then(function(directoryHandle) {
-                    // Получаем имя папки
+                    // Пытаемся получить полный путь различными способами
+                    var fullPath = '';
                     var folderName = directoryHandle.name || 'selected_folder';
                     
-                    // Формируем путь в зависимости от типа
-                    var fullPath = '';
-                    if (targetId === 'wslPath') {
-                        // Для WSL используем путь в формате \\wsl.localhost\Ubuntu\home\user\...
-                        fullPath = '\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\' + folderName;
-                    } else {
-                        // Для Windows используем путь C:\...
-                        fullPath = 'C:\\' + folderName;
+                    // Способ 1: Пытаемся получить путь через getDirectoryHandle (работает в некоторых браузерах)
+                    try {
+                        if (directoryHandle.getDirectoryHandle) {
+                            // Пробуем получить корневой путь
+                            var root = directoryHandle;
+                            var pathParts = [];
+                            
+                            // Рекурсивно поднимаемся вверх до корня
+                            function getPath(handle, parts) {
+                                if (handle.name) {
+                                    parts.unshift(handle.name);
+                                }
+                                // Пытаемся получить родительскую папку
+                                if (handle.parent) {
+                                    getPath(handle.parent, parts);
+                                }
+                            }
+                            
+                            // Если есть путь в свойстве path
+                            if (directoryHandle.path) {
+                                fullPath = directoryHandle.path;
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Не удалось получить полный путь:', e);
                     }
                     
-                    // Обновляем поле ввода
-                    document.getElementById(targetId).value = fullPath;
+                    // Способ 2: Используем webkitRelativePath через input (альтернативный метод)
+                    if (!fullPath || fullPath === '') {
+                        // Создаем временный input для получения пути через файлы
+                        var tempInput = document.createElement('input');
+                        tempInput.type = 'file';
+                        tempInput.setAttribute('webkitdirectory', '');
+                        tempInput.setAttribute('directory', '');
+                        tempInput.style.display = 'none';
+                        document.body.appendChild(tempInput);
+                        
+                        // Создаем Promise для обработки выбора
+                        var pathPromise = new Promise(function(resolve) {
+                            tempInput.addEventListener('change', function(e) {
+                                if (e.target.files.length > 0) {
+                                    var firstFile = e.target.files[0];
+                                    var relativePath = firstFile.webkitRelativePath;
+                                    var folderPath = relativePath.split('/')[0];
+                                    resolve(folderPath);
+                                } else {
+                                    resolve(null);
+                                }
+                                document.body.removeChild(tempInput);
+                            });
+                        });
+                        
+                        // Симулируем клик для открытия диалога
+                        tempInput.click();
+                        
+                        // Ждем результат
+                        pathPromise.then(function(folderPath) {
+                            if (folderPath) {
+                                if (targetId === 'wslPath') {
+                                    document.getElementById(targetId).value = '\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\' + folderPath;
+                                } else {
+                                    document.getElementById(targetId).value = 'C:\\' + folderPath;
+                                }
+                                generateCommand(false);
+                            }
+                        });
+                        return;
+                    }
+                    
+                    // Если получили путь, обновляем поле
+                    if (fullPath && fullPath !== '') {
+                        document.getElementById(targetId).value = fullPath;
+                    } else {
+                        // Если не удалось получить полный путь, используем имя папки
+                        if (targetId === 'wslPath') {
+                            document.getElementById(targetId).value = '\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\' + folderName;
+                        } else {
+                            document.getElementById(targetId).value = 'C:\\' + folderName;
+                        }
+                    }
                     
                     // Обновляем команду
                     generateCommand(false);
@@ -269,6 +348,38 @@
                         alert('Произошла ошибка при выборе папки. Пожалуйста, введите путь вручную.');
                     }
                 });
+        }
+
+        // Функция для получения полного пути через Native File System API (экспериментальный)
+        async function getFullPath(handle) {
+            try {
+                // Пытаемся получить доступ к файловой системе
+                if (window.showDirectoryPicker) {
+                    // Запрашиваем разрешение на чтение
+                    const opts = { mode: 'read' };
+                    const permission = await handle.requestPermission(opts);
+                    
+                    if (permission === 'granted') {
+                        // Пытаемся получить путь через getFile
+                        const entries = [];
+                        for await (const entry of handle.values()) {
+                            entries.push(entry);
+                        }
+                        
+                        // Если есть файлы, пытаемся получить путь к первому файлу
+                        if (entries.length > 0) {
+                            const fileHandle = await handle.getFileHandle(entries[0].name);
+                            const file = await fileHandle.getFile();
+                            if (file.webkitRelativePath) {
+                                return file.webkitRelativePath.split('/')[0];
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('Не удалось получить полный путь:', e);
+            }
+            return null;
         }
 
         function generateCommand(isClick) {
