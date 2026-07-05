@@ -105,7 +105,9 @@ docker pull n0uk/dynast.io-server-private:release
 ```bash
 docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=standard -e DYNASTIO_LABEL="BymiNoob" -e DYNASTIO_UID=google:11111111 -e DYNASTIO_PIN_CODE=676-767-676 -p 800:800 -v C:\dyn_private\settings:/usr/local/bin/settings -v C:\dyn_private\data.sqlite:/usr/local/bin/data.sqlite -v C:\dyn_private\logs:/var/log ^
 -v \\wsl$\Debian\home\user\maps:/usr/local/bin/maps -d n0uk/dynast.io-server-private:release
-```  
+```
+
+## [Сайт для генерирования команды](https://chilavik1.github.io/dynastio-windows/)
 
 #### Описание команды: 
 * `-e DYNASTIO_MAP` — название карты
