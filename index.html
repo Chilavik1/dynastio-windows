@@ -60,7 +60,11 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        input, select { 
+        .input-with-btn {
+            display: flex;
+            gap: 10px;
+        }
+        input { 
             width: 100%; 
             padding: 12px 16px; 
             background: rgba(13, 10, 22, 0.8); 
@@ -70,16 +74,34 @@
             font-size: 14px;
             outline: none;
         }
-        input:focus, select:focus { 
+        input:focus { 
             border-color: #a855f7; 
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
             background: rgba(13, 10, 22, 0.9);
         }
-        select option {
-            background: #130f22;
+        .browse-btn {
+            background: rgba(147, 51, 234, 0.15);
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            color: #c084fc;
+            padding: 0 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .browse-btn:hover {
+            background: rgba(147, 51, 234, 0.3);
+            border-color: #a855f7;
             color: #fff;
         }
-        button { 
+        #folderInput {
+            display: none;
+        }
+        .submit-btn { 
             background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); 
             color: white; 
             padding: 14px 20px; 
@@ -94,11 +116,11 @@
             letter-spacing: 1px;
             box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
         }
-        button:hover { 
+        .submit-btn:hover { 
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(217, 70, 239, 0.5);
         }
-        button:active {
+        .submit-btn:active {
             transform: translateY(0);
         }
         .result-box { 
@@ -141,12 +163,21 @@
 
     <div class="container">
         <h2>Luminous Generator</h2>
-        <div class="subtitle">Конфигуратор строки запуска приватного сервера Dynast.io</div>
+        <div class="subtitle">Генератор строки запуска приватного сервера Dynast.io</div>
 
         <div class="form-grid">
             <div class="form-group full-width">
                 <label for="basePath">Путь к рабочей папке сервера:</label>
-                <input type="text" id="basePath" value="C:\dyn_private">
+                <div class="input-with-btn">
+                    <input type="text" id="basePath" value="C:\dyn_private">
+                    <label class="browse-btn" for="folderInput">Выбрать папку</label>
+                    <input type="file" id="folderInput" webkitdirectory directory multiple>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="wslPath">Путь к папке карт WSL:</label>
+                <input type="text" id="wslPath" value="\\wsl$\Debian\home\user\maps">
             </div>
 
             <div class="form-group">
@@ -161,11 +192,7 @@
 
             <div class="form-group">
                 <label for="map">Игровая карта:</label>
-                <select id="map">
-                    <option value="standard">Standard</option>
-                    <option value="desert">Desert</option>
-                    <option value="winter">Winter</option>
-                </select>
+                <input type="text" id="map" value="standard">
             </div>
 
             <div class="form-group">
@@ -179,7 +206,7 @@
             </div>
         </div>
 
-        <button onclick="generateCommand()">Скопировать команду</button>
+        <button class="submit-btn" onclick="generateCommand()">Скопировать команду</button>
 
         <div class="result-box">
             <span class="result-title">Ready Output</span>
@@ -188,21 +215,31 @@
     </div>
 
     <script>
+        document.getElementById('folderInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                let relativePath = e.target.files.webkitRelativePath;
+                let folderName = relativePath.split('/');
+                document.getElementById('basePath').value = "C:\\" + folderName[0];
+                generateCommand();
+            }
+        });
+
         function generateCommand() {
             let basePath = document.getElementById('basePath').value.replace(/\/$/, ""); 
+            let wslPath = document.getElementById('wslPath').value.replace(/\/$/, "");
             let label = document.getElementById('label').value;
             let port = document.getElementById('port').value;
             let map = document.getElementById('map').value;
             let uid = document.getElementById('uid').value;
             let pin = document.getElementById('pin').value;
 
-            let command = `docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=${map} -e DYNASTIO_LABEL="${label}" -e DYNASTIO_UID=${uid} -e DYNASTIO_PIN_CODE=${pin} -p ${port}:${port} -v ${basePath}\\settings:/usr/local/bin/settings -v ${basePath}\\data.sqlite:/usr/local/bin/data.sqlite -v ${basePath}\\logs:/var/log -v \\\\wsl$\\Debian\\home\\user\\maps:/usr/local/bin/maps -d n0uk/dynast.io-server-private:release`;
+            let command = `docker run --rm --name dynast -e DYNASTIO_HETWORK_MODE=host -e DYNASTIO_MAP=${map} -e DYNASTIO_LABEL="${label}" -e DYNASTIO_UID=${uid} -e DYNASTIO_PIN_CODE=${pin} -p ${port}:${port} -v ${basePath}\\settings:/usr/local/bin/settings -v ${basePath}\\data.sqlite:/usr/local/bin/data.sqlite -v ${basePath}\\logs:/var/log -v ${wslPath}:/usr/local/bin/maps -d n0uk/dynast.io-server-private:release`;
 
             document.getElementById('output').innerText = command;
 
-            if (event && event.type === 'click') {
+            if (window.event && window.event.type === 'click') {
                 navigator.clipboard.writeText(command).then(() => {
-                    let btn = document.querySelector('button');
+                    let btn = document.querySelector('.submit-btn');
                     let oldText = btn.innerText;
                     btn.innerText = "Успешно скопировано!";
                     btn.style.background = "linear-gradient(135deg, #22c55e 0%, #10b981 100%)";
@@ -220,6 +257,10 @@
 
         window.onload = function() {
             generateCommand();
+            
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', generateCommand);
+            });
         };
     </script>
 
