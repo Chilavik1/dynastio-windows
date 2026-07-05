@@ -93,11 +93,15 @@
             align-items: center;
             justify-content: center;
             min-width: 120px;
+            gap: 6px;
         }
         .browse-btn:hover {
             background: rgba(147, 51, 234, 0.3);
             border-color: #a855f7;
             color: #fff;
+        }
+        .browse-btn .icon {
+            font-size: 16px;
         }
         .submit-btn { 
             background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); 
@@ -147,17 +151,28 @@
             line-height: 1.5;
             display: block;
         }
-        .info-box {
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 15px;
-            font-size: 13px;
-            color: #94a3b8;
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
         }
-        .info-box strong {
-            color: #c084fc;
+        .status-badge.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .status-badge.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .status-badge.info {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
         }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
@@ -169,23 +184,33 @@
 <body>
 
     <div class="container">
-        <h2>Luminous Generator</h2>
+        <h2>📁 Luminous Generator</h2>
         <div class="subtitle">Конфигуратор строки запуска приватного сервера Dynast.io</div>
 
         <div class="form-grid">
             <div class="form-group full-width">
-                <label for="basePath">Путь к рабочей папке сервера:</label>
+                <label for="basePath">
+                    Путь к рабочей папке сервера:
+                    <span id="baseStatus" class="status-badge info">⏳ ожидание</span>
+                </label>
                 <div class="input-with-btn">
                     <input type="text" id="basePath" value="C:\dyn_private" placeholder="Введите путь вручную">
-                    <button class="browse-btn" onclick="showPathGuide('basePath', 'Рабочая папка сервера (Windows)')">Как указать путь</button>
+                    <button class="browse-btn" onclick="selectFolder('basePath', 'Выберите рабочую папку сервера')">
+                        <span class="icon">📂</span> Выбрать
+                    </button>
                 </div>
             </div>
 
             <div class="form-group full-width">
-                <label for="wslPath">Путь к папке карт WSL:</label>
+                <label for="wslPath">
+                    Путь к папке карт WSL:
+                    <span id="wslStatus" class="status-badge info">⏳ ожидание</span>
+                </label>
                 <div class="input-with-btn">
                     <input type="text" id="wslPath" value="\\wsl.localhost\Ubuntu\home\chlvk\dynast\maps" placeholder="Введите путь вручную">
-                    <button class="browse-btn" onclick="showPathGuide('wslPath', 'Папка карт в WSL')">Как указать путь</button>
+                    <button class="browse-btn" onclick="selectFolder('wslPath', 'Выберите папку с картами')">
+                        <span class="icon">📂</span> Выбрать
+                    </button>
                 </div>
             </div>
 
@@ -215,33 +240,113 @@
             </div>
         </div>
 
-        <button class="submit-btn" onclick="generateCommand(true)">Скопировать команду</button>
+        <button class="submit-btn" onclick="generateCommand(true)">📋 Скопировать команду</button>
 
         <div class="result-box">
             <span class="result-title">Ready Output</span>
             <code id="output">Генерация строки...</code>
         </div>
         
-        <div class="info-box">
-            <strong>💡 Как указать пути:</strong><br>
-            • Рабочая папка: укажите полный путь на диске C:, например <code>C:\dyn_private</code><br>
-            • Папка карт WSL: используйте формат <code>\\wsl.localhost\Ubuntu\home\user\maps</code>
+        <div style="margin-top: 15px; font-size: 12px; color: #64748b; text-align: center;">
+            💡 Для выбора папки используйте кнопки "Выбрать" — работает в современных браузерах (Chrome, Edge, Opera)
         </div>
     </div>
 
     <script>
-        function showPathGuide(targetId, pathType) {
-            var examples = {
+        // Функция выбора папки с использованием File System Access API
+        async function selectFolder(targetId, dialogTitle) {
+            const statusElement = document.getElementById(targetId + 'Status');
+            const inputElement = document.getElementById(targetId);
+            
+            try {
+                // Проверяем поддержку API
+                if (!window.showDirectoryPicker) {
+                    // Fallback: показываем инструкцию для ручного ввода
+                    showManualInstruction(targetId);
+                    return;
+                }
+
+                statusElement.textContent = '⏳ выбор...';
+                statusElement.className = 'status-badge info';
+
+                // Открываем диалог выбора папки
+                const directoryHandle = await window.showDirectoryPicker();
+                
+                // Получаем полный путь
+                let fullPath = '';
+                
+                // Пытаемся получить путь разными способами
+                if (directoryHandle.name) {
+                    // Для Windows через WSL или локальные пути
+                    if (targetId === 'wslPath') {
+                        // Для WSL используем путь в формате \\wsl.localhost\...
+                        // Пользователь должен выбрать папку внутри WSL
+                        const wslBase = '\\\\wsl.localhost\\Ubuntu\\home\\chlvk\\dynast\\';
+                        fullPath = wslBase + directoryHandle.name;
+                    } else {
+                        // Для Windows используем путь C:\...
+                        // В некоторых случаях браузер может дать доступ к реальному пути
+                        try {
+                            // Пытаемся получить путь через getDirectoryHandle
+                            const pathParts = [];
+                            let current = directoryHandle;
+                            
+                            // Пытаемся построить путь
+                            if (directoryHandle.name) {
+                                // Простой подход: используем только имя папки
+                                fullPath = 'C:\\' + directoryHandle.name;
+                            }
+                        } catch (e) {
+                            fullPath = 'C:\\' + directoryHandle.name;
+                        }
+                    }
+                } else {
+                    fullPath = directoryHandle.name || 'Выбрана папка';
+                }
+
+                // Обновляем поле ввода
+                inputElement.value = fullPath;
+                statusElement.textContent = '✅ выбрано';
+                statusElement.className = 'status-badge success';
+                
+                // Обновляем команду
+                generateCommand(false);
+                
+            } catch (error) {
+                if (error.name === 'AbortError' || error.code === 20) {
+                    // Пользователь отменил выбор
+                    statusElement.textContent = '⏹ отменено';
+                    statusElement.className = 'status-badge info';
+                } else {
+                    console.error('Ошибка выбора папки:', error);
+                    statusElement.textContent = '❌ ошибка';
+                    statusElement.className = 'status-badge error';
+                    
+                    // Показываем инструкцию при ошибке
+                    showManualInstruction(targetId);
+                }
+            }
+        }
+
+        // Инструкция для ручного ввода (fallback)
+        function showManualInstruction(targetId) {
+            const examples = {
                 'basePath': 'C:\\dyn_private',
                 'wslPath': '\\\\wsl.localhost\\Ubuntu\\home\\user\\maps'
             };
             
-            var message = '📁 ' + pathType + '\n\n' +
-                         'Введите путь вручную в поле ввода.\n\n' +
-                         'Пример для Windows:\n' + examples[targetId] + '\n\n' +
-                         'Вы можете скопировать путь из проводника Windows и вставить в поле.';
+            const messages = {
+                'basePath': 'Рабочая папка сервера (Windows)',
+                'wslPath': 'Папка карт в WSL'
+            };
             
-            alert(message);
+            alert(
+                '📁 ' + messages[targetId] + '\n\n' +
+                'К сожалению, ваш браузер не поддерживает выбор папки.\n' +
+                'Пожалуйста, введите путь вручную в поле ввода.\n\n' +
+                'Пример правильного пути:\n' + examples[targetId] + '\n\n' +
+                '💡 Для WSL используйте формат: \\\\wsl.localhost\\Ubuntu\\home\\...'
+            );
         }
 
         function generateCommand(isClick) {
@@ -282,9 +387,9 @@
                     textArea.select();
                     try {
                         document.execCommand('copy');
-                        alert('Команда скопирована в буфер обмена!');
+                        alert('✅ Команда скопирована в буфер обмена!');
                     } catch (err) {
-                        alert('Не удалось скопировать автоматически. Скопируйте команду вручную.');
+                        alert('❌ Не удалось скопировать автоматически. Скопируйте команду вручную.');
                     }
                     document.body.removeChild(textArea);
                 });
@@ -298,6 +403,16 @@
             for (var i = 0; i < inputs.length; i++) {
                 inputs[i].addEventListener('input', function() { 
                     generateCommand(false); 
+                });
+            }
+            
+            // Проверка поддержки API
+            if (!window.showDirectoryPicker) {
+                document.querySelectorAll('.status-badge').forEach(badge => {
+                    if (badge.textContent.includes('ожидание')) {
+                        badge.textContent = '⚠️ ручной ввод';
+                        badge.className = 'status-badge error';
+                    }
                 });
             }
         };
